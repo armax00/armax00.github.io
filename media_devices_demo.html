@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>enumeration demo</title>
+  </head>
+  <body>
+    Devices:
+    <ul id="devicelist"></ul>
+    <button id="refresh" onclick="refreshDeviceList(false);">Refresh device list</button><br>
+
+    <script>
+    var device_list = null;
+    window.onload = onLoad;
+
+    async function onLoad() {
+      document.cookie = "username=John Doe";
+
+      device_list = document.getElementById("devicelist");
+      try {
+        var stream = await navigator.mediaDevices.getUserMedia(
+          {audio:true, video:true})
+        stream.getAudioTracks()[0].stop();
+        stream.getVideoTracks()[0].stop();
+        console.log("stream closed");
+        refreshDeviceList(true, device_list);
+      } catch (err) {
+        addItem(err + ' ' + err.name + ': ' + err.message);
+      }
+    }
+
+    function addItem(strItem) {
+      var item = document.createElement("li");
+      item.innerHTML = strItem;
+      device_list.appendChild(item);
+    }
+
+    function clearItems() {
+      while (device_list.firstChild ){
+          device_list.removeChild(device_list.firstChild );
+      }
+    }
+
+    async function refreshDeviceList(selectFirst) {
+      clearItems()
+
+      if (!navigator.mediaDevices) {
+        addItem('navigator.mediaDevices not supported');
+        return;
+      }
+
+      if (!navigator.mediaDevices.enumerateDevices) {
+        addItem('enumerateDevices not supported');
+        return;
+      }
+
+      try {
+        var devices = await navigator.mediaDevices.enumerateDevices();
+        var count = 0;
+        for (var i = 0; i < devices.length; i++) {
+          count++;
+          addItem('' + (count) + ' - ' + devices[i].kind + ' - ' +
+                  devices[i].deviceId + ' - ' + devices[i].label);
+        }
+      } catch (err) {
+        console.log("WTF");
+        alert('Something wrong: ' + err.message);
+      }
+    }
+    </script>
+
+  </body>
+</html>
